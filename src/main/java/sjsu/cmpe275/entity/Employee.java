@@ -2,9 +2,7 @@ package sjsu.cmpe275.entity;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
-
 import java.util.List;
-
 
 @Entity
 @Table(name = "employee")
@@ -62,3 +60,5 @@ public class Employee {
     public Employee() {
     }
 }
+
+//Every employee has zero or one manager. An employee’s manager, if there is one, must work for the same employer. Is this enforced in this code?
