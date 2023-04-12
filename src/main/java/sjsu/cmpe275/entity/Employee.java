@@ -40,7 +40,8 @@ public class Employee {
 
     @ManyToOne
     @JoinColumns ({
-            @JoinColumn(name = "manager_id", referencedColumnName = "id", insertable = false, updatable = false)
+            @JoinColumn(name = "manager_id", referencedColumnName = "id", insertable = false, updatable = false),
+            @JoinColumn(name = "employer_id", referencedColumnName = "employer_id", insertable = false, updatable = false),
     })
     private Employee Manager;
 
@@ -49,9 +50,13 @@ public class Employee {
 
     @ManyToMany
     @JoinTable(
-            name = "collaborator",
-            joinColumns = @JoinColumn(name = "id"),
-            inverseJoinColumns = @JoinColumn(name = "collaborator_id"))
+        name = "collaborator",
+        joinColumns = {
+            @JoinColumn(name = "employee_id", referencedColumnName = "id", insertable = false, updatable = false),
+            @JoinColumn(name = "employer_id", referencedColumnName = "employer_id", insertable = false, updatable = false)
+        },
+        inverseJoinColumns = @JoinColumn(name = "collaborator_id")
+    )
     private List<Employee> collaborators;
 
     public Employee() {
