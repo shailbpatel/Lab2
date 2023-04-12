@@ -60,5 +60,3 @@ public class Employee {
     public Employee() {
     }
 }
-
-//Every employee has zero or one manager. An employee’s manager, if there is one, must work for the same employer. Is this enforced in this code?
