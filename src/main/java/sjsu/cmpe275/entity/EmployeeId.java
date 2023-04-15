@@ -19,16 +19,8 @@ public class EmployeeId implements Serializable {
         return id;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
-
     public long getEmployerId() {
         return employerId;
-    }
-
-    public void setEmployerId(long employerId) {
-        this.employerId = employerId;
     }
 
     @Override

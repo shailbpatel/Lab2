@@ -1,6 +1,5 @@
 package sjsu.cmpe275.service;
 
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,7 +15,6 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -39,51 +37,53 @@ public class EmployeeService {
         return maxId == null ? 1 : maxId + 1;
     }
 
-    public Employee createEmployee(String name, String email, String title, String street, String city, String state, String zip, Long managerId, long employerId) throws Exception {
+    public Employee createEmployee(String name, String email, String title, String street, String city, String state, String zip, Long managerId, long employerId) throws ResponseStatusException {
         Employer optionalEmployer = employerRepository.findById(employerId);
         if (optionalEmployer == null) {
-            throw new Exception("Employer object does not exist!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employer object does not exist!");
+
         }
         Employee Manager = null;
         if(managerId != null) {
             Manager = employeeRepository.findByIdAndEmployerId(managerId, employerId);
             if(Manager == null) {
-              throw new Exception("Manager does not exist!");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Manager does not exist!");
             }
         }
         Address address = new Address(street, city, state, zip);
         List<Employee> reports = new ArrayList<>();
         List<Employee> collaborators = new ArrayList<>();
-        Employee employee = new Employee(employerId, name, email, title, address, optionalEmployer, Manager, collaborators, reports);
+        long id = generateEmployeeId(employerId);
+        Employee employee = new Employee(id, employerId, name, email, title, address, optionalEmployer, Manager, collaborators, reports);
 
-        List<Employee> currentReports = Manager.getReports();
-        currentReports.add(employee);
-        Manager.setReports(currentReports);
+        if(Manager != null) {
+            employee.setManager(Manager);
+        }
 
         List<Employee> currentEmpList = optionalEmployer.getEmployees();
+        if(currentEmpList == null) {
+            currentEmpList = new ArrayList<Employee>();
+        }
         currentEmpList.add(employee);
         optionalEmployer.setEmployees(currentEmpList);
 
-        employee.setId(generateEmployeeId(employerId));
         Employee savedEmployee = employeeRepository.save(employee);
-        entityManager.flush();
         return savedEmployee;
     }
 
-    public Employee getEmployee(EmployeeId employeeId) throws Exception {
+
+    public Employee getEmployee(EmployeeId employeeId) throws ResponseStatusException {
         Employee optionalEmployee = employeeRepository.findByIdAndEmployerId(employeeId.getId(), employeeId.getEmployerId());
         if (optionalEmployee == null) {
-            throw new Exception("Employee does not exist!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found for the given employer and employee ID.");
         }
-        Employee employee = optionalEmployee;
-        Hibernate.initialize(employee.getManager());
-        return employee;
+        return optionalEmployee;
     }
 
-    public Employee updateEmployee(EmployeeId employeeId, String name, String email, String title, String street, String city, String state, String zip, Long managerId) throws Exception {
+    public Employee updateEmployee(EmployeeId employeeId, String name, String email, String title, String street, String city, String state, String zip, Long managerId) throws ResponseStatusException {
         Employee optionalEmployee = employeeRepository.findByIdAndEmployerId(employeeId.getId(), employeeId.getEmployerId());
         if (optionalEmployee == null) {
-            throw new Exception("Employee does not exist!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found for the given employer and employee ID.");
         }
         Employee employee = optionalEmployee;
 
@@ -119,13 +119,13 @@ public class EmployeeService {
         if (managerId != null && managerEmployerId != null) {
             Employee newManager = employeeRepository.findByIdAndEmployerId(managerId, employeeId.getEmployerId());
             if (newManager == null) {
-                throw new Exception("Manager does not exist!");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Manager does not exist!");
             }
             if (newManager.equals(employee)) {
-                throw new Exception("Employee cannot be their own manager!");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee cannot be their own manager!");
             }
             if (newManager == null && !newManager.getEmployer().equals(employee.getEmployer())) {
-                throw new Exception("Manager is not from the same employer!");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Manager is not from the same employer!");
             }
             Employee currentManager = employee.getManager();
             List<Employee> oldReports = currentManager.getReports();
@@ -138,8 +138,6 @@ public class EmployeeService {
             employee.setManager(newManager);
         } else if (managerId == null && managerEmployerId == null) {
             employee.setManager(null);
-        } else {
-            throw new Exception("Both manager ID and employer ID must be present, or neither!");
         }
 
         Employee savedEmployee = employeeRepository.save(employee);
@@ -148,18 +146,20 @@ public class EmployeeService {
     }
 
     @Transactional
-    public Employee deleteEmployee(Long id, Long employerId) throws Exception {
+    public Employee deleteEmployee(Long id, Long employerId) throws ResponseStatusException {
         Employee optionalEmployee = employeeRepository.findByIdAndEmployerId(id, employerId);
         if (optionalEmployee != null) {;
             if (!optionalEmployee.getReports().isEmpty()) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employee has reports and cannot be deleted.");
             }
             Employee currentManager = optionalEmployee.getManager();
-            List<Employee> oldReports = currentManager.getReports();
-            oldReports.add(optionalEmployee);
-
-            currentManager.setReports(oldReports);
+            if (currentManager != null) {
+                List<Employee> oldReports = currentManager.getReports();
+                oldReports.remove(optionalEmployee);
+                currentManager.setReports(oldReports);
+            }
             employeeRepository.delete(optionalEmployee);
+            entityManager.flush();
             return optionalEmployee;
         } else {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found.");

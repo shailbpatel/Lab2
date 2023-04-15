@@ -76,7 +76,8 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(long employerId, String name, String email, String title, Address address, Employer employer, Employee manager, List<Employee> collaborators, List<Employee> reports) {
+    public Employee(long id, long employerId, String name, String email, String title, Address address, Employer employer, Employee manager, List<Employee> collaborators, List<Employee> reports) {
+        this.id = id;
         this.employerId = employerId;
         this.name = name;
         this.email = email;

@@ -7,9 +7,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import sjsu.cmpe275.service.EmployeeService;
 import sjsu.cmpe275.entity.Employee;
-import sjsu.cmpe275.entity.EmployeeId;
 
 @RestController
 @Transactional
@@ -30,7 +30,7 @@ public class EmployeeController {
             @RequestParam(value = "zip", required = false) String zip,
             @RequestParam(value = "managerId", required = false) Long managerId,
             @PathVariable("employerId") long employerId,
-            @RequestParam(value = "format", defaultValue = "json") String format) throws Exception {
+            @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
 
         Employee newEmployee = employeeService.createEmployee(name, email, title, street, city, state, zip, managerId, employerId);
 
@@ -47,5 +47,12 @@ public class EmployeeController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
         return ResponseEntity.status(HttpStatus.OK).body(newEmployee);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        return ResponseEntity
+                .status(ex.getStatus())
+                .body(ex.getReason());
     }
 }
