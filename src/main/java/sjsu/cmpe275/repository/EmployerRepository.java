@@ -4,5 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import sjsu.cmpe275.entity.Employer;
 
+import java.util.Optional;
+
 public interface EmployerRepository extends CrudRepository<Employer, Long> {
 }

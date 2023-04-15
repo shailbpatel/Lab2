@@ -1,18 +1,16 @@
 package sjsu.cmpe275.entity;
 
-import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
-@Embeddable
 public class EmployeeId implements Serializable {
     private long id;
-    private String employerId;
+    private long employerId;
 
     public EmployeeId() {
     }
 
-    public EmployeeId(long id, String employerId) {
+    public EmployeeId(long id, long employerId) {
         this.id = id;
         this.employerId = employerId;
     }

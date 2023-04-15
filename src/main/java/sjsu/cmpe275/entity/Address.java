@@ -2,8 +2,11 @@ package sjsu.cmpe275.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 @Embeddable
+@XmlRootElement(name = "address")
 public class Address {
     @Column(name = "street")
     private String street;
@@ -17,6 +20,7 @@ public class Address {
     @Column(name = "zip")
     private String zip;
 
+    @XmlElement(name = "state")
     public String getState() {
         return state;
     }
@@ -25,6 +29,7 @@ public class Address {
         this.state = state;
     }
 
+    @XmlElement(name = "zip")
     public String getZip() {
         return zip;
     }
@@ -33,6 +38,7 @@ public class Address {
         this.zip = zip;
     }
 
+    @XmlElement(name = "street")
     public String getStreet() {
         return street;
     }
@@ -41,6 +47,7 @@ public class Address {
         this.street = street;
     }
 
+    @XmlElement(name = "city")
     public String getCity() {
         return city;
     }

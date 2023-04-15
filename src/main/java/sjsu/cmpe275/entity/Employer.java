@@ -1,10 +1,14 @@
 package sjsu.cmpe275.entity;
 
 import javax.persistence.*;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.util.List;
+import javax.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "employer")
+@XmlRootElement(name = "employer")
 public class Employer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -12,6 +16,7 @@ public class Employer {
     private long id;
 
     @Column(name = "name", nullable = false, unique = true)
+    @NotBlank( message = "Name may not be empty or full of white spaces")
     private String name;
 
     @Column(name = "description")
@@ -20,7 +25,7 @@ public class Employer {
     @Embedded
     private Address address;
 
-    @OneToMany(mappedBy = "employer")
+    @Transient
     private List<Employee> employees;
 
     public Employer(String name, String description, Address address, List<Employee> employees) {
@@ -33,6 +38,16 @@ public class Employer {
     public Employer() {
     }
 
+    @XmlElement(name = "id")
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    @XmlElement(name = "employees")
     public List<Employee> getEmployees() {
         return employees;
     }
@@ -41,6 +56,7 @@ public class Employer {
         this.employees = employees;
     }
 
+    @XmlElement(name = "address")
     public Address getAddress() {
         return address;
     }
@@ -49,6 +65,7 @@ public class Employer {
         this.address = address;
     }
 
+    @XmlElement(name = "description")
     public String getDescription() {
         return description;
     }
@@ -57,6 +74,7 @@ public class Employer {
         this.description = description;
     }
 
+    @XmlElement(name = "name")
     public String getName() {
         return name;
     }

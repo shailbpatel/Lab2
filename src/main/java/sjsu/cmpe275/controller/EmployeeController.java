@@ -1,5 +1,7 @@
 package sjsu.cmpe275.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -11,6 +13,7 @@ import sjsu.cmpe275.entity.Employee;
 
 @RestController
 @Transactional
+@RequestMapping("/employee")
 public class EmployeeController {
     @Autowired
     private EmployeeService employeeService;
@@ -21,22 +24,15 @@ public class EmployeeController {
     }
 
     // Implement the required REST API methods, e.g., createEmployee, getEmployee, etc.
-    @PostMapping("employee/create/{employerId}")
+    @PostMapping(value = "/create/{employerId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<Employee> createEmployee(
+            @RequestBody ObjectNode body,
             @PathVariable("employerId") long employerId,
-            @RequestParam("name") String name,
-            @RequestParam(value = "email", required = false) String email,
-            @RequestParam(value = "title", required = false) String title,
-            @RequestParam(value = "street", required = false) String street,
-            @RequestParam(value = "city", required = false) String city,
-            @RequestParam(value = "state", required = false) String state,
-            @RequestParam(value = "zip", required = false) String zip,
-            @RequestParam(value = "managerId", required = false) long managerId,
-            @RequestParam(value = "format", defaultValue = "json") String format) {
+            @RequestParam(value = "format", defaultValue = "json") String format) throws JsonProcessingException {
 
-        Employee newEmployee = employeeService.createEmployee(employerId, name, email, title, street, city, state, zip, managerId);
+        Employee newEmployee = employeeService.createEmployee(body, employerId);
 
-        if (newEmployee == null) {
+            if (newEmployee == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
 

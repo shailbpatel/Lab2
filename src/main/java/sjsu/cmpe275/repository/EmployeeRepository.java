@@ -5,4 +5,5 @@ import org.springframework.data.repository.CrudRepository;
 import sjsu.cmpe275.entity.Employee;
 
 public interface EmployeeRepository extends CrudRepository<Employee, Long> {
+    Employee findByIdAndEmployerId(Long id, long employer_id);
 }

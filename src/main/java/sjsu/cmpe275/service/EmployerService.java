@@ -1,10 +1,22 @@
 package sjsu.cmpe275.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import sjsu.cmpe275.entity.Address;
+import sjsu.cmpe275.entity.Employee;
 import sjsu.cmpe275.entity.Employer;
 import sjsu.cmpe275.repository.EmployerRepository;
 
+import javax.persistence.Entity;
+import javax.persistence.EntityManager;
+
+
+import javax.persistence.Transient;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -13,10 +25,28 @@ public class EmployerService {
     @Autowired
     private EmployerRepository employerRepository;
 
-    public Employer createEmployer(Employer employer) {
-        return employerRepository.save(employer);
-    }
+    @Autowired
+    private EntityManager entityManager;
 
+    @Transactional
+    public Employer createEmployer(ObjectNode body) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Employer employer = new Employer();
+
+        String name = body.get("name").asText();
+        employer.setName(name);
+        String description = body.get("description").asText();
+        employer.setDescription(description);
+
+        String addressJsonString = objectMapper.writeValueAsString(body.get("address"));
+        Address address = objectMapper.readValue(addressJsonString, Address.class);
+
+        employer.setAddress(address);
+        employer.setEmployees(new ArrayList<Employee>());
+        Employer savedEmployer = employerRepository.save(employer);
+        entityManager.flush();
+        return savedEmployer;
+    }
     public Employer getEmployer(long id) {
         Optional<Employer> employer = employerRepository.findById(id);
         return employer.orElse(null);
