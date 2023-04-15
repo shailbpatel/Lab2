@@ -1,24 +1,19 @@
 package sjsu.cmpe275.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import sjsu.cmpe275.entity.Address;
 import sjsu.cmpe275.entity.Employee;
 import sjsu.cmpe275.entity.Employer;
 import sjsu.cmpe275.repository.EmployerRepository;
 
-import javax.persistence.Entity;
 import javax.persistence.EntityManager;
 
 
-import javax.persistence.Transient;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EmployerService {
@@ -29,18 +24,14 @@ public class EmployerService {
     private EntityManager entityManager;
 
     @Transactional
-    public Employer createEmployer(ObjectNode body) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
+    public Employer createEmployer(String name, String description, String street, String city, String state, String zip) {
+        if(employerRepository.findByName(name) != null) {
+            return null;
+        }
         Employer employer = new Employer();
-
-        String name = body.get("name").asText();
         employer.setName(name);
-        String description = body.get("description").asText();
         employer.setDescription(description);
-
-        String addressJsonString = objectMapper.writeValueAsString(body.get("address"));
-        Address address = objectMapper.readValue(addressJsonString, Address.class);
-
+        Address address = new Address(street, city, state, zip);
         employer.setAddress(address);
         employer.setEmployees(new ArrayList<Employee>());
         Employer savedEmployer = employerRepository.save(employer);
@@ -48,27 +39,66 @@ public class EmployerService {
         return savedEmployer;
     }
     public Employer getEmployer(long id) {
-        Optional<Employer> employer = employerRepository.findById(id);
-        return employer.orElse(null);
+        Employer employer = employerRepository.findById(id);
+        return employer;
     }
 
-    public List<Employer> getAllEmployers() {
-        return null;
-        // return employerRepository.findAll();
+    public Iterable<Employer> getAllEmployers() {
+//        return null;
+         return employerRepository.findAll();
     }
 
-    public Employer updateEmployer(long id, Employer employerDetails) {
-        Optional<Employer> optionalEmployer = employerRepository.findById(id);
-
-        if (optionalEmployer.isPresent()) {
-            Employer employer = optionalEmployer.get();
-            employer.setName(employerDetails.getName());
-            return employerRepository.save(employer);
+    @Transactional
+    public Employer updateEmployer(long employerId, String name, String description, String street, String city, String state, String zip) throws Exception {
+        Employer optionalEmployer = employerRepository.findById(employerId);
+        if (optionalEmployer == null) {
+            throw new Exception("Employer does not exist!");
         }
-        return null;
+
+        if (name != null) {
+            optionalEmployer.setName(name);
+        }
+
+        if (description != null) {
+            optionalEmployer.setDescription(description);
+        }
+
+        if (street != null || city != null || state != null || zip != null) {
+            Address address = optionalEmployer.getAddress();
+            if (address == null) {
+                address = new Address();
+                optionalEmployer.setAddress(address);
+            }
+            if (street != null) {
+                address.setStreet(street);
+            }
+            if (city != null) {
+                address.setCity(city);
+            }
+            if (state != null) {
+                address.setState(state);
+            }
+            if (zip != null) {
+                address.setZip(zip);
+            }
+        }
+
+        Employer savedEmployer = employerRepository.save(optionalEmployer);
+        entityManager.flush();
+        return savedEmployer;
     }
 
-    public void deleteEmployer(long id) {
-        employerRepository.deleteById(id);
+    public Employer deleteEmployer(long id) {
+        Employer optionalEmployer = employerRepository.findById(id);
+        if (optionalEmployer != null) {
+            if (optionalEmployer.getEmployees() != null) {
+                if(!optionalEmployer.getEmployees().isEmpty())
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Employer has employees and cannot be deleted.");
+            }
+            employerRepository.delete(optionalEmployer);
+            return optionalEmployer;
+        } else {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found.");
+        }
     }
 }

@@ -15,6 +15,22 @@ public class EmployeeId implements Serializable {
         this.employerId = employerId;
     }
 
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public long getEmployerId() {
+        return employerId;
+    }
+
+    public void setEmployerId(long employerId) {
+        this.employerId = employerId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

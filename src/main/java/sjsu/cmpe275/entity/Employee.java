@@ -4,17 +4,21 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlElement;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 
 @Entity
 @Table(name = "employee")
 @XmlRootElement(name = "employee")
 @IdClass(EmployeeId.class)
+@JsonInclude(Include.NON_NULL)
 public class Employee {
 
     @Id
     @Column(name = "id")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Id
@@ -39,9 +43,10 @@ public class Employee {
     private Employer employer;
 
     private Long manager_id;
-    private long manager_employer_id;
+    private Long manager_employer_id;
 
-    @ManyToOne
+    @JsonManagedReference
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumns ({
             @JoinColumn(name = "manager_id", referencedColumnName = "id", insertable = false, updatable = false),
             @JoinColumn(name = "manager_employer_id", referencedColumnName = "employer_id", insertable = false, updatable = false),
@@ -49,7 +54,7 @@ public class Employee {
     @Access(AccessType.PROPERTY)
     private Employee Manager;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "collaborator",
             joinColumns = {
@@ -64,31 +69,52 @@ public class Employee {
     @Access(AccessType.PROPERTY)
     private List<Employee> collaborators;
 
-    @OneToMany(mappedBy = "Manager", cascade = CascadeType.ALL)
+    @JsonBackReference
+    @OneToMany(mappedBy = "Manager", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Employee> reports;
 
     public Employee() {
     }
 
+    public Employee(long employerId, String name, String email, String title, Address address, Employer employer, Employee manager, List<Employee> collaborators, List<Employee> reports) {
+        this.employerId = employerId;
+        this.name = name;
+        this.email = email;
+        this.title = title;
+        this.address = address;
+        this.employer = employer;
+        this.setManager(manager);
+        this.collaborators = collaborators;
+        this.reports = reports;
+    }
+
     public Long getManagerId() {
+        return manager_id;
+    }
+
+    public void setManager(Employee manager) {
         if (this.Manager != null) {
-            return this.Manager.getId();
+            if (this.Manager.equals(manager)) {
+                return;
+            }
         }
-        return null;
-    }
 
-    public void setManagerId(long managerId) {
-        this.manager_id = managerId;
-    }
+        this.Manager = manager;
 
-    public long getManagerEmployerId() {
-        if (this.Manager != null) {
-            return this.Manager.getEmployerId();
+        if (manager != null) {
+            this.manager_id = manager.getId();
+            this.manager_employer_id = manager.getEmployerId();
+        } else {
+            this.manager_id = null;
+            this.manager_employer_id = null;
         }
-        return Long.parseLong(null);
     }
 
-    public void setManagerEmployerId(long managerEmployerId) {
+    public Long getManagerEmployerId() {
+        return manager_employer_id;
+    }
+
+    public void setManagerEmployerId(Long managerEmployerId) {
         this.manager_employer_id = managerEmployerId;
     }
 
@@ -96,22 +122,18 @@ public class Employee {
         this.name = name;
     }
 
-    @XmlElement(name = "name")
     public String getName() {
         return name;
     }
 
-    @XmlElement(name = "employer_id")
     public long getEmployerId() {
         return employerId;
     }
 
-    @XmlElement(name = "collaborators")
     public List<Employee> getCollaborators() {
         return collaborators;
     }
 
-    @XmlElement(name = "id")
     public long getId() {
         return id;
     }
@@ -124,7 +146,6 @@ public class Employee {
         this.collaborators = collaborators;
     }
 
-    @XmlElement(name = "title")
     public String getTitle() {
         return title;
     }
@@ -133,7 +154,6 @@ public class Employee {
         this.title = title;
     }
 
-    @XmlElement(name = "employer")
     public Employer getEmployer() {
         return employer;
     }
@@ -142,23 +162,11 @@ public class Employee {
         this.employer = employer;
     }
 
-    @XmlElement(name = "manager")
+//    @XmlElement(name = "manager")
     public Employee getManager() {
         return Manager;
     }
 
-    public void setManager(Employee manager) {
-        this.Manager = manager;
-        if (manager != null) {
-            this.manager_id = manager.getId();
-            this.manager_employer_id = manager.getEmployerId();
-        } else {
-            this.manager_id = null;
-            this.manager_employer_id = Long.parseLong(null);
-        }
-    }
-
-    @XmlElement(name = "email")
     public String getEmail() {
         return email;
     }
@@ -167,7 +175,6 @@ public class Employee {
         this.email = email;
     }
 
-    @XmlElement(name = "address")
     public Address getAddress() {
         return address;
     }
@@ -180,7 +187,6 @@ public class Employee {
         this.employerId = employerId;
     }
 
-    @XmlElement(name = "reports")
     public List<Employee> getReports() {
         return reports;
     }
