@@ -139,7 +139,7 @@ public class EmployerService {
             employerRepository.delete(optionalEmployer);
             return optionalEmployer;
         } else {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found.");
+            return null;
         }
     }
 }

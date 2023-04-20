@@ -4,10 +4,11 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import java.util.List;
 import javax.xml.bind.annotation.XmlRootElement;
-import com.fasterxml.jackson.annotation.JsonInclude;
+
+import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 
 
 @Entity
@@ -15,6 +16,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @XmlRootElement(name = "employee")
 @IdClass(EmployeeId.class)
 @JsonInclude(Include.NON_NULL)
+@JsonSerialize(using = FullEmployeeSerializer.class)
 public class Employee {
 
     @Id
@@ -38,14 +40,15 @@ public class Employee {
     @Embedded
     private Address address;
 
-    @Transient
+
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "employer_id", referencedColumnName = "id", updatable = false, insertable = false)
     private Employer employer;
 
     private Long manager_id;
     private Long manager_employer_id;
 
-    @JsonManagedReference
+    @JsonSerialize(using = ShallowEmployeeSerializer.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumns ({
             @JoinColumn(name = "manager_id", referencedColumnName = "id", insertable = false, updatable = false),
@@ -69,7 +72,6 @@ public class Employee {
     @Access(AccessType.PROPERTY)
     private List<Employee> collaborators;
 
-    @JsonBackReference
     @OneToMany(mappedBy = "Manager", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Employee> reports;
 

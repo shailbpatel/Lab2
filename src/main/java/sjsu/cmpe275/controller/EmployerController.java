@@ -12,6 +12,7 @@ import sjsu.cmpe275.entity.EmployeeId;
 import sjsu.cmpe275.entity.Employer;
 import sjsu.cmpe275.service.EmployeeService;
 import sjsu.cmpe275.service.EmployerService;
+import sjsu.cmpe275.service.ErrorResponse;
 
 @RestController
 @RequestMapping("/employer")
@@ -38,7 +39,7 @@ public class EmployerController {
      */
 
     @PostMapping(value = "", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Employer> createEmployer(
+    public ResponseEntity<?> createEmployer(
             @RequestParam(required = true) String name,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String street,
@@ -50,7 +51,8 @@ public class EmployerController {
         Employer newEmployer = employerService.createEmployer(name, description, street, city, state, zip);
 
         if (newEmployer == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Employer already exists.");
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         }
 
         if ("json".equalsIgnoreCase(format)) {
@@ -58,7 +60,8 @@ public class EmployerController {
         } else if ("xml".equalsIgnoreCase(format)) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(newEmployer);
         } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong");
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         }
     }
 
@@ -71,8 +74,12 @@ public class EmployerController {
      * @throws ResponseStatusException if the employer with the given ID could not be found
      */
     @GetMapping(value = "/{employerId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Employer> getEmployer(@PathVariable Long employerId, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
+    public ResponseEntity<?> getEmployer(@PathVariable Long employerId, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
         Employer employer = employerService.getEmployer(employerId);
+        if(employer == null) {
+            ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Employer not found.");
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
+        }
         if (format.equals("xml")) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(employer);
         } else {
@@ -95,7 +102,7 @@ public class EmployerController {
      * does not exist or if there is a bad request
      */
     @PutMapping(path = "/{employerId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Employer> updateEmployer(@PathVariable("employerId") long employerId,
+    public ResponseEntity<?> updateEmployer(@PathVariable("employerId") long employerId,
                                                    @RequestParam(required = true) String name,
                                                    @RequestParam(required = false) String description,
                                                    @RequestParam(required = false) String street,
@@ -113,9 +120,11 @@ public class EmployerController {
             }
         } catch (Exception e) {
             if (e.getMessage() == "Employer does not exist!") {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+                ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Employer not found.");
+                return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
             }
-            return ResponseEntity.badRequest().body(null);
+            ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Something went wrong.");
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         }
     }
 
@@ -129,12 +138,13 @@ public class EmployerController {
      */
 
 
-    @DeleteMapping(value = "/{employerId}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    @DeleteMapping(value = "/{employerId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<?> deleteEmployer(@PathVariable("employerId") Long employerId, @RequestParam(required = false) String format) throws Exception {
         Employer deletedEmployer = employerService.deleteEmployer(employerId);
 
         if (deletedEmployer == null) {
-            return ResponseEntity.notFound().build();
+            ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Employer not found.");
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         }
         if (format != null && format.equals("xml")) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(deletedEmployer);
@@ -155,9 +165,13 @@ public class EmployerController {
      */
 
     @GetMapping(value = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Employee> getEmployee(@PathVariable Long employerId, @PathVariable Long id, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
+    public ResponseEntity<?> getEmployee(@PathVariable Long employerId, @PathVariable Long id, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
         EmployeeId employeeId = new EmployeeId(id, employerId);
         Employee employee = employeeService.getEmployee(employeeId);
+        if (employee == null) {
+            ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Employee not found.");
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
+        }
         if (format.equals("xml")) {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(employee);
         } else {
@@ -183,7 +197,7 @@ public class EmployerController {
      * @throws ResponseStatusException if the employee or employer ID is invalid
      */
     @PutMapping(path = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<Employee> updateEmployee(@PathVariable("employerId") long employerId,
+    public ResponseEntity<?> updateEmployee(@PathVariable("employerId") long employerId,
                                                    @PathVariable("id") long id,
                                                    @RequestParam(required = true) String name,
                                                    @RequestParam(required = false) String email,
@@ -194,12 +208,17 @@ public class EmployerController {
                                                    @RequestParam(required = false) String zip,
                                                    @RequestParam(required = false) Long managerId,
                                                    @RequestParam(required = false) String format) throws ResponseStatusException {
+        try {
+            Employee employee = employeeService.updateEmployee(new EmployeeId(id, employerId), name, email, title, street, city, state, zip, managerId);
 
-        Employee employee = employeeService.updateEmployee(new EmployeeId(id, employerId), name, email, title, street, city, state, zip, managerId);
-        if (format != null && format.equals("xml")) {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(employee);
-        } else {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(employee);
+            if (format != null && format.equals("xml")) {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(employee);
+            } else {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(employee);
+            }
+        } catch (ResponseStatusException ex) {
+            ErrorResponse response = new ErrorResponse(ex.getStatus().value(), ex.getReason());
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         }
     }
 
@@ -214,25 +233,16 @@ public class EmployerController {
      */
     @DeleteMapping(value = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> deleteEmployee(@PathVariable("employerId") Long employerId, @PathVariable("id") Long id, @RequestParam(required = false) String format) throws ResponseStatusException {
-        Employee deletedEmployee = employeeService.deleteEmployee(id, employerId);
-        if (format != null && format.equals("xml")) {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(deletedEmployee);
-        } else {
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(deletedEmployee);
+        try {
+            Employee deletedEmployee = employeeService.deleteEmployee(id, employerId);
+            if (format != null && format.equals("xml")) {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(deletedEmployee);
+            } else {
+                return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(deletedEmployee);
+            }
+        } catch (ResponseStatusException ex) {
+            ErrorResponse response = new ErrorResponse(ex.getStatus().value(), ex.getReason());
+            return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCode()));
         }
-    }
-
-    /**
-     * Handles a {@link ResponseStatusException} and returns a {@link ResponseEntity} with the status code and reason.
-     *
-     * @param ex the {@link ResponseStatusException} to handle
-     * @return a {@link ResponseEntity} with the status code and reason
-     */
-
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
-        return ResponseEntity
-                .status(ex.getStatus())
-                .body(ex.getReason());
     }
 }
