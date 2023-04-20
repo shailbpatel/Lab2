@@ -1,5 +1,6 @@
 package sjsu.cmpe275.controller;
 
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -231,6 +232,7 @@ public class EmployerController {
      * @return a ResponseEntity with a status code and the deleted employee in either JSON or XML format
      * @throws ResponseStatusException if the employer or employee with the given IDs cannot be found in the database
      */
+    @Transactional
     @DeleteMapping(value = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<?> deleteEmployee(@PathVariable("employerId") Long employerId, @PathVariable("id") Long id, @RequestParam(required = false) String format) throws ResponseStatusException {
         try {

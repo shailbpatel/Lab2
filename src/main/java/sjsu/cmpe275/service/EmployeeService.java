@@ -131,35 +131,17 @@ public class EmployeeService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found for the given employer and employee ID.");
         }
         Employee employee = optionalEmployee;
+        employee.setName(name);
+        employee.setEmail(email);
+        employee.setTitle(title);
 
-        if (name != null) {
-            employee.setName(name);
-        }
-        if (email != null) {
-            employee.setEmail(email);
-        }
-        if (title != null) {
-            employee.setTitle(title);
-        }
-        if (street != null || city != null || state != null || zip != null) {
-            Address address = employee.getAddress();
-            if (address == null) {
-                address = new Address();
-                employee.setAddress(address);
-            }
-            if (street != null) {
-                address.setStreet(street);
-            }
-            if (city != null) {
-                address.setCity(city);
-            }
-            if (state != null) {
-                address.setState(state);
-            }
-            if (zip != null) {
-                address.setZip(zip);
-            }
-        }
+        Address address = employee.getAddress();
+        address.setStreet(street);
+        address.setCity(city);
+        address.setState(state);
+        address.setZip(zip);
+        employee.setAddress(address);
+
         Long managerEmployerId = employeeId.getEmployerId();
         if (managerId != null && managerEmployerId != null) {
             Employee newManager = employeeRepository.findByIdAndEmployerId(managerId, employeeId.getEmployerId());
