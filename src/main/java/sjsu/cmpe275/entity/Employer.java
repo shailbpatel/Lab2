@@ -11,11 +11,11 @@ import javax.validation.constraints.NotBlank;
 @Entity
 @Table(name = "employer")
 @XmlRootElement(name = "employer")
+@JsonSerialize(using = FullEmployerSerializer.class)
 public class Employer {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
-    private long id;
+    private String id;
 
     @Column(name = "name", nullable = false, unique = true)
     @NotBlank( message = "Name may not be empty or full of white spaces")
@@ -30,7 +30,8 @@ public class Employer {
     @Transient
     private List<Employee> employees;
 
-    public Employer(String name, String description, Address address, List<Employee> employees) {
+    public Employer(String id, String name, String description, Address address, List<Employee> employees) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.address = address;
@@ -41,11 +42,11 @@ public class Employer {
     }
 
     @XmlElement(name = "id")
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

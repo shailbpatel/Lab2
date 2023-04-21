@@ -49,7 +49,7 @@ public class FullEmployeeSerializer extends JsonSerializer<Employee> {
             return;
         }
         jsonGenerator.writeNumberField("id", employee.getId());
-        jsonGenerator.writeStringField("employerId", String.valueOf(employee.getEmployerId()));
+        jsonGenerator.writeStringField("employerId", employee.getEmployerId());
         jsonGenerator.writeStringField("name", employee.getName());
         jsonGenerator.writeStringField("email", employee.getEmail());
         jsonGenerator.writeStringField("title", employee.getTitle());

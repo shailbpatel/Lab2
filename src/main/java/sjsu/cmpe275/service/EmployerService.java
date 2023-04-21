@@ -34,11 +34,12 @@ public class EmployerService {
      * @return the created Employer, or null if an Employer with the same name already exists in the database
      */
     @Transactional
-    public Employer createEmployer(String name, String description, String street, String city, String state, String zip) {
-        if (employerRepository.findByName(name) != null) {
+    public Employer createEmployer(String id, String name, String description, String street, String city, String state, String zip) {
+        if (employerRepository.findById(id) != null) {
             return null;
         }
         Employer employer = new Employer();
+        employer.setId(id);
         employer.setName(name);
         employer.setDescription(description);
         Address address = new Address(street, city, state, zip);
@@ -56,7 +57,7 @@ public class EmployerService {
      * @param id the ID of the Employer to retrieve
      * @return the Employer with the specified ID, or null if the Employer was not found in the database
      */
-    public Employer getEmployer(long id) {
+    public Employer getEmployer(String id) {
         Employer employer = employerRepository.findById(id);
         return employer;
     }
@@ -83,7 +84,7 @@ public class EmployerService {
      * @return the updated Employer
      */
     @Transactional
-    public Employer updateEmployer(long employerId, String name, String description, String street, String city, String state, String zip) throws Exception {
+    public Employer updateEmployer(String employerId, String name, String description, String street, String city, String state, String zip) throws Exception {
         Employer optionalEmployer = employerRepository.findById(employerId);
         if (optionalEmployer == null) {
             throw new Exception("Employer does not exist!");
@@ -129,7 +130,7 @@ public class EmployerService {
      * @return the deleted Employer, or null if the Employer was not found
      * @throws ResponseStatusException if the Employer with the specified ID has associated Employees
      */
-    public Employer deleteEmployer(long id) {
+    public Employer deleteEmployer(String id) {
         Employer optionalEmployer = employerRepository.findById(id);
         if (optionalEmployer != null) {
             if (optionalEmployer.getEmployees() != null) {

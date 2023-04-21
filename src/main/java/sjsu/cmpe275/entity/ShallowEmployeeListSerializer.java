@@ -12,6 +12,7 @@ public class ShallowEmployeeListSerializer extends JsonSerializer<List<Employee>
 
     @Override
     public void serialize(List<Employee> employees, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        if(employees == null || employees.size() == 0) return;
         for (Employee employee : employees) {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeNumberField("id", employee.getId());

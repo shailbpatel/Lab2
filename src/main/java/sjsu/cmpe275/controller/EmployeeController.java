@@ -5,7 +5,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import sjsu.cmpe275.service.EmployeeService;
@@ -47,7 +46,7 @@ public class EmployeeController {
             @RequestParam(value = "state", required = false) String state,
             @RequestParam(value = "zip", required = false) String zip,
             @RequestParam(value = "managerId", required = false) Long managerId,
-            @PathVariable("employerId") long employerId,
+            @PathVariable("employerId") String employerId,
             @RequestParam(value = "format", defaultValue = "json") String format) {
 
         try {

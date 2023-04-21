@@ -15,7 +15,7 @@ public class FullEmployerSerializer extends JsonSerializer<Employer> {
     @Override
     public void serialize(Employer employer, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeStartObject();
-        jsonGenerator.writeNumberField("id", employer.getId());
+        jsonGenerator.writeStringField("id", employer.getId());
         jsonGenerator.writeStringField("name", employer.getName());
         jsonGenerator.writeStringField("description", employer.getDescription());
 
@@ -28,15 +28,10 @@ public class FullEmployerSerializer extends JsonSerializer<Employer> {
         jsonGenerator.writeStringField("zip", address.getZip());
         jsonGenerator.writeEndObject();
 
-        // Serialize employees using ShallowEmployeeSerializer
-        ShallowEmployeeSerializer shallowEmployeeSerializer = new ShallowEmployeeSerializer();
+        // Serialize employees using ShallowEmployeeListSerializer
         jsonGenerator.writeArrayFieldStart("employees");
-        List<Employee> employees = employer.getEmployees();
-        if(employees != null) {
-            for (Employee employee : employees) {
-                shallowEmployeeSerializer.serialize(employee, jsonGenerator, serializerProvider);
-            }
-        }
+        ShallowEmployeeListSerializer shallowEmployeeListSerializer = new ShallowEmployeeListSerializer();
+        shallowEmployeeListSerializer.serialize(employer.getEmployees(), jsonGenerator, serializerProvider);
         jsonGenerator.writeEndArray();
 
         jsonGenerator.writeEndObject();

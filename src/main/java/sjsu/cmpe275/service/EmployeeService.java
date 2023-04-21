@@ -34,7 +34,7 @@ public class EmployeeService {
      * @param employerId the ID of the employer for whom the new employee ID will be generated
      * @return a new employee ID that is unique within the specified employer's employee list
      */
-    public long generateEmployeeId(long employerId) {
+    public long generateEmployeeId(String employerId) {
         CriteriaBuilder cb = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> cq = cb.createQuery(Long.class);
         Root<Employee> root = cq.from(Employee.class);
@@ -60,7 +60,7 @@ public class EmployeeService {
      * @throws ResponseStatusException if the Employer object does not exist or the Manager does not exist
      */
 
-    public Employee createEmployee(String name, String email, String title, String street, String city, String state, String zip, Long managerId, long employerId) throws ResponseStatusException, Exception {
+    public Employee createEmployee(String name, String email, String title, String street, String city, String state, String zip, Long managerId, String employerId) {
         Employer optionalEmployer = employerRepository.findById(employerId);
         if (optionalEmployer == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employer object does not exist!");
@@ -142,7 +142,7 @@ public class EmployeeService {
         address.setZip(zip);
         employee.setAddress(address);
 
-        Long managerEmployerId = employeeId.getEmployerId();
+        String managerEmployerId = employeeId.getEmployerId();
         if (managerId != null && managerEmployerId != null) {
             Employee newManager = employeeRepository.findByIdAndEmployerId(managerId, employeeId.getEmployerId());
             if (newManager == null) {
@@ -184,7 +184,7 @@ public class EmployeeService {
      * @throws ResponseStatusException If the Employee with the given ID and employer ID is not found, or if the Employee has reports and cannot be deleted.
      */
 //    @Transactional
-    public Employee deleteEmployee(Long id, Long employerId) throws ResponseStatusException {
+    public Employee deleteEmployee(Long id, String employerId) throws ResponseStatusException {
         Employee optionalEmployee = employeeRepository.findByIdAndEmployerId(id, employerId);
         if (optionalEmployee != null) {
             ;

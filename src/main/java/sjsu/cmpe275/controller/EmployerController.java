@@ -1,7 +1,6 @@
 package sjsu.cmpe275.controller;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,6 +40,7 @@ public class EmployerController {
 
     @PostMapping(value = "", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
     public ResponseEntity<?> createEmployer(
+            @RequestParam(required = true) String id,
             @RequestParam(required = true) String name,
             @RequestParam(required = false) String description,
             @RequestParam(required = false) String street,
@@ -49,7 +49,7 @@ public class EmployerController {
             @RequestParam(required = false) String zip,
             @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
 
-        Employer newEmployer = employerService.createEmployer(name, description, street, city, state, zip);
+        Employer newEmployer = employerService.createEmployer(id, name, description, street, city, state, zip);
 
         if (newEmployer == null) {
             ErrorResponse response = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Employer already exists.");
@@ -75,7 +75,7 @@ public class EmployerController {
      * @throws ResponseStatusException if the employer with the given ID could not be found
      */
     @GetMapping(value = "/{employerId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> getEmployer(@PathVariable Long employerId, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
+    public ResponseEntity<?> getEmployer(@PathVariable String employerId, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
         Employer employer = employerService.getEmployer(employerId);
         if(employer == null) {
             ErrorResponse response = new ErrorResponse(HttpStatus.NOT_FOUND.value(), "Employer not found.");
@@ -103,14 +103,15 @@ public class EmployerController {
      * does not exist or if there is a bad request
      */
     @PutMapping(path = "/{employerId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> updateEmployer(@PathVariable("employerId") long employerId,
-                                                   @RequestParam(required = true) String name,
-                                                   @RequestParam(required = false) String description,
-                                                   @RequestParam(required = false) String street,
-                                                   @RequestParam(required = false) String city,
-                                                   @RequestParam(required = false) String state,
-                                                   @RequestParam(required = false) String zip,
-                                                   @RequestParam(required = false) String format) {
+    public ResponseEntity<?> updateEmployer(
+                                        @PathVariable("employerId") String employerId,
+                                        @RequestParam(required = true) String name,
+                                        @RequestParam(required = false) String description,
+                                        @RequestParam(required = false) String street,
+                                        @RequestParam(required = false) String city,
+                                        @RequestParam(required = false) String state,
+                                        @RequestParam(required = false) String zip,
+                                        @RequestParam(required = false) String format) {
 
         try {
             Employer employer = employerService.updateEmployer(employerId, name, description, street, city, state, zip);
@@ -140,7 +141,7 @@ public class EmployerController {
 
 
     @DeleteMapping(value = "/{employerId}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> deleteEmployer(@PathVariable("employerId") Long employerId, @RequestParam(required = false) String format) throws Exception {
+    public ResponseEntity<?> deleteEmployer(@PathVariable("employerId") String employerId, @RequestParam(required = false) String format) throws Exception {
         Employer deletedEmployer = employerService.deleteEmployer(employerId);
 
         if (deletedEmployer == null) {
@@ -166,7 +167,7 @@ public class EmployerController {
      */
 
     @GetMapping(value = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> getEmployee(@PathVariable Long employerId, @PathVariable Long id, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
+    public ResponseEntity<?> getEmployee(@PathVariable String employerId, @PathVariable Long id, @RequestParam(value = "format", defaultValue = "json") String format) throws ResponseStatusException {
         EmployeeId employeeId = new EmployeeId(id, employerId);
         Employee employee = employeeService.getEmployee(employeeId);
         if (employee == null) {
@@ -198,7 +199,7 @@ public class EmployerController {
      * @throws ResponseStatusException if the employee or employer ID is invalid
      */
     @PutMapping(path = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
-    public ResponseEntity<?> updateEmployee(@PathVariable("employerId") long employerId,
+    public ResponseEntity<?> updateEmployee(@PathVariable("employerId") String employerId,
                                                    @PathVariable("id") long id,
                                                    @RequestParam(required = true) String name,
                                                    @RequestParam(required = false) String email,
@@ -233,8 +234,8 @@ public class EmployerController {
      * @throws ResponseStatusException if the employer or employee with the given IDs cannot be found in the database
      */
     @Transactional
-    @DeleteMapping(value = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_XML_VALUE, MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<?> deleteEmployee(@PathVariable("employerId") Long employerId, @PathVariable("id") Long id, @RequestParam(required = false) String format) throws ResponseStatusException {
+    @DeleteMapping(value = "/{employerId}/employee/{id}", produces = {MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE})
+    public ResponseEntity<?> deleteEmployee(@PathVariable("employerId") String employerId, @PathVariable("id") Long id, @RequestParam(required = false) String format) throws ResponseStatusException {
         try {
             Employee deletedEmployee = employeeService.deleteEmployee(id, employerId);
             if (format != null && format.equals("xml")) {

@@ -11,7 +11,7 @@ public class ShallowEmployerSerializer extends JsonSerializer<Employer> {
     @Override
     public void serialize(Employer employer, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
         jsonGenerator.writeObjectFieldStart("employer");
-        jsonGenerator.writeNumberField("id", employer.getId());
+        jsonGenerator.writeStringField("id", employer.getId());
         jsonGenerator.writeStringField("name", employer.getName());
         jsonGenerator.writeStringField("description", employer.getDescription());
         jsonGenerator.writeEndObject();

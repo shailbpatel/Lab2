@@ -27,9 +27,9 @@ public class CollaboratorController {
      */
     @PutMapping("/{employerId1}/{employeeId1}/{employerId2}/{employeeId2}")
     public ResponseEntity<?> addCollaborator(
-            @PathVariable("employerId1") long employerId1,
+            @PathVariable("employerId1") String employerId1,
             @PathVariable("employeeId1") long employeeId1,
-            @PathVariable("employerId2") long employerId2,
+            @PathVariable("employerId2") String employerId2,
             @PathVariable("employeeId2") long employeeId2) {
 
         try {
@@ -59,9 +59,9 @@ public class CollaboratorController {
 
     @DeleteMapping("/{employerId1}/{employeeId1}/{employerId2}/{employeeId2}")
     public ResponseEntity<String> deleteCollaborator(
-            @PathVariable("employerId1") long employerId1,
+            @PathVariable("employerId1") String employerId1,
             @PathVariable("employeeId1") long employeeId1,
-            @PathVariable("employerId2") long employerId2,
+            @PathVariable("employerId2") String employerId2,
             @PathVariable("employeeId2") long employeeId2) {
 
         try {

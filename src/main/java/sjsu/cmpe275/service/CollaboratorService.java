@@ -30,7 +30,7 @@ public class CollaboratorService {
      *      @return true if the employees were successfully added as collaborators, false otherwise
      *      @throws IllegalArgumentException if employee1 is the same as employee2
      */
-    public Boolean addCollaborator(long employerId1, long employeeId1, long employerId2, long employeeId2) {
+    public Boolean addCollaborator(String employerId1, long employeeId1, String employerId2, long employeeId2) {
         Employer optionalEmployer1 = employerRepository.findById(employerId1);
         if (optionalEmployer1 == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Employer object does not exist!");
@@ -74,7 +74,7 @@ public class CollaboratorService {
      * @return true if the collaboration was deleted successfully, false if either employee could not be found
      * @throws Exception if the two employees are the same or if the collaboration does not exist
      */
-    public Boolean deleteCollaborator(long employerId1, long employeeId1, long employerId2, long employeeId2) throws Exception {
+    public Boolean deleteCollaborator(String employerId1, long employeeId1, String employerId2, long employeeId2) throws Exception {
         if (employerId1 == employerId2 && employeeId1 == employeeId2) {
             throw new Exception("Cannot remove an employee as a collaborator of himself/herself.");
         }

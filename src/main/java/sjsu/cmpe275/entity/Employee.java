@@ -25,7 +25,7 @@ public class Employee {
 
     @Id
     @Column(name = "employer_id", nullable = false)
-    private long employerId;
+    private String employerId;
 
     @NotEmpty(message = "Name may not be empty")
     @Column(name = "name", nullable = false)
@@ -46,7 +46,7 @@ public class Employee {
     private Employer employer;
 
     private Long manager_id;
-    private Long manager_employer_id;
+    private String manager_employer_id;
 
     @JsonSerialize(using = ShallowEmployeeSerializer.class)
     @ManyToOne(fetch = FetchType.EAGER)
@@ -66,7 +66,7 @@ public class Employee {
             },
             inverseJoinColumns = {
                     @JoinColumn(name = "collaborator_id", referencedColumnName = "id"),
-                    @JoinColumn(name = "collaborator_employer_id", referencedColumnName = "employer_id", columnDefinition = "bigint")
+                    @JoinColumn(name = "collaborator_employer_id", referencedColumnName = "employer_id")
             }
     )
     @Access(AccessType.PROPERTY)
@@ -78,7 +78,7 @@ public class Employee {
     public Employee() {
     }
 
-    public Employee(long id, long employerId, String name, String email, String title, Address address, Employer employer, Employee manager, List<Employee> collaborators, List<Employee> reports) {
+    public Employee(long id, String employerId, String name, String email, String title, Address address, Employer employer, Employee manager, List<Employee> collaborators, List<Employee> reports) {
         this.id = id;
         this.employerId = employerId;
         this.name = name;
@@ -113,11 +113,11 @@ public class Employee {
         }
     }
 
-    public Long getManagerEmployerId() {
+    public String getManagerEmployerId() {
         return manager_employer_id;
     }
 
-    public void setManagerEmployerId(Long managerEmployerId) {
+    public void setManagerEmployerId(String managerEmployerId) {
         this.manager_employer_id = managerEmployerId;
     }
 
@@ -129,7 +129,7 @@ public class Employee {
         return name;
     }
 
-    public long getEmployerId() {
+    public String getEmployerId() {
         return employerId;
     }
 
@@ -186,7 +186,7 @@ public class Employee {
         this.address = address;
     }
 
-    public void setEmployerId(long employerId) {
+    public void setEmployerId(String employerId) {
         this.employerId = employerId;
     }
 
